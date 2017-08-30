@@ -1220,3 +1220,6 @@ sub protein {
   # return
   return $alph;
 }
+
+1;
+__END__
