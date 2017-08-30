@@ -1150,6 +1150,37 @@ sub dna {
 }
 
 #
+# Return the DNA with cytosine modifications alphabet.
+#
+sub moddna {
+  my $alph = dna();
+  $alph->parse_header('modDNA', 'modDNA');
+  # core symbols
+  $alph->parse_symbol('m', '5-Methylcytosine', 0xD73027, 'T');
+  $alph->parse_symbol('1', 'Guanine:5-Methylcytosine', 0x4575B4, 'G');
+  $alph->parse_symbol('h', '5-Hydroxymethylcytosine', 0xF46D43, 'C');
+  $alph->parse_symbol('2', 'Guanine:5-Hydroxymethylcytosine', 0x74ADD1, 'A');
+  $alph->parse_symbol('f', '5-Formylcytosine', 0xFDAE61, 'T');
+  $alph->parse_symbol('3', 'Guanine:5-Formylcytosine', 0xABD9E9, 'G');
+  $alph->parse_symbol('c', '5-Carboxylcytosine', 0xFEE090, 'C');
+  $alph->parse_symbol('4', 'Guanine:5-Carboxylcytosine', 0xE0F3F8, 'A');
+  # ambiguous symbols
+  $alph->parse_symbol('z', 'Any C mod', undef, undef, 'Cmhfc');
+  $alph->parse_symbol('9', 'Guanine:any C mod', undef, undef, 'G1234');
+  $alph->parse_symbol('y', 'C, not (hydroxy)methylcytosine', undef, undef, 'Cfc');
+  $alph->parse_symbol('8', 'Guanine:C, not (hydroxy)methylcytosine', undef, undef, 'G34');
+  $alph->parse_symbol('x', '(Hydroxy)methylcytosine', undef, undef, 'mh');
+  $alph->parse_symbol('7', 'Guanine:(hydroxy)methylcytosine', undef, undef, '12');
+  $alph->parse_symbol('w', '(Formyl/carboxyl)cytosine', undef, undef, 'fc');
+  $alph->parse_symbol('6', 'Guanine:(formyl/carboxyl)cytosine', undef, undef, '34');
+  # process
+  $alph->parse_done();
+  die("Uhoh, this shouldn't happen:\n" + join("\n", $alph->get_errors())) if ($alph->has_errors());
+  # return
+  return $alph;
+}
+
+#
 # Return the Protein alphabet.
 #
 sub protein {
