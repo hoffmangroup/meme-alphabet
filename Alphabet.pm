@@ -49,6 +49,9 @@ use feature 'unicode_strings';
 use Carp;
 use Fcntl qw(O_RDONLY);
 
+# pinned to the latest MEME Suite version (x.yy.z), and then versioned from there
+use version; our $VERSION = version->declare("v4.12.0.1");
+
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(rna dna protein);
