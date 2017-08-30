@@ -1,4 +1,4 @@
-use 5.006;
+use 5.008;
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
@@ -8,9 +8,9 @@ WriteMakefile(
     AUTHOR           => q{Timothy L. Bailey <meme-suite@uw.edu>},
     VERSION_FROM     => 'lib/MEME/Alphabet.pm',
     ABSTRACT_FROM    => 'lib/MEME/Alphabet.pm',
-    LICENSE          => 'artistic_2',
+    LICENSE          => 'MEME Suite',
     PL_FILES         => {},
-    MIN_PERL_VERSION => '5.006',
+    MIN_PERL_VERSION => '5.008',
     CONFIGURE_REQUIRES => {
         'ExtUtils::MakeMaker' => '0',
     },
@@ -18,8 +18,6 @@ WriteMakefile(
         'Test::More' => '0',
     },
     PREREQ_PM => {
-        #'ABC'              => '1.6',
-        #'Foo::Bar::Module' => '5.0401',
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'MEME-Alphabet-*' },
