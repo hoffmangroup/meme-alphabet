@@ -707,6 +707,7 @@ sub is_ambig_seq {
   my $self = shift;
   my ($seq) = @_;
   my $ambig_only_re = $self->{re_ambig_only};
+
   return scalar($seq =~ m/$ambig_only_re/);
 }
 
@@ -717,13 +718,16 @@ sub is_part_ambig_seq {
   my $self = shift;
   my ($seq) = @_;
   my $ambig_re = $self->{re_ambig};
+
   return scalar($seq =~ m/$ambig_re/);
 }
 
 sub char {
   my $self = shift;
   my ($index) = @_;
-  return undef if ($index < 0 || $index > scalar(@{$self->{syms}}));
+
+  return if ($index < 0 || $index > scalar(@{$self->{syms}}));
+
   return $self->{syms}->[$index]->{sym};
 }
 
@@ -734,7 +738,9 @@ sub index {
   my $self = shift;
   my ($letter) = @_;
   my $sym = $self->{lookup}->{$letter};
-  return undef unless defined $sym;
+
+  return unless defined $sym;
+
   return $sym->{index};
 }
 
@@ -745,7 +751,8 @@ sub encode {
   my $self = shift;
   my ($letter) = @_;
   my $sym = $self->{lookup}->{$letter};
-  return undef unless defined $sym;
+
+  return unless defined $sym;
   return $sym->{sym};
 }
 
@@ -790,12 +797,14 @@ sub negate_set {
   my $self = shift;
   my ($set) = @_;
   my %negated_set = ();
+
   for (my $i = 0; $i < $self->{ncore}; $i++) {
     my $a = $self->{syms}->[$i]->{sym};
     if (!($set->{$a})) {
       $negated_set{$a} = 1;
     }
   }
+
   return \%negated_set;
 }
 
@@ -806,10 +815,11 @@ sub find_unknown {
   my $self = shift;
   my ($seq) = @_;
   my $not_valid = $self->{re_not_valid};
+
   if ($seq =~ m/($not_valid)/) {
     return ($-[1], $1);
   } else {
-    return undef;
+    return;
   }
 }
 
@@ -821,8 +831,10 @@ sub rc_seq {
   croak("Alphabet does not allow complementing.") unless $self->has_complement();
   my ($sequence) = @_;
   my @seq = split //, $sequence;
+
   @seq = reverse @seq;
   @seq = map { $self->{lookup}->{$_}->{complement}->{sym} } @seq;
+
   return join('', @seq);
 }
 
@@ -858,7 +870,9 @@ sub translate_seq {
     $src .= $self->{tr_src_unknown_to_wild};
     $dst .= $self->{tr_dst_unknown_to_wild};
   }
-  eval "\$sequence =~ tr/$src/$dst/";
+
+  eval {$sequence =~ tr/$src/$dst/};
+
   return $sequence;
 }
 
@@ -944,7 +958,9 @@ sub is_protein {
 #
 sub _decode_JSON_string {
   my ($text) = @_;
-  return undef unless defined $text;
+
+  return unless defined $text;
+
   $text =~ s/\\(["\\\/])/$1/g;
   $text =~ s/\\b/\x{8}/g;
   $text =~ s/\\f/\x{C}/g;
@@ -952,6 +968,7 @@ sub _decode_JSON_string {
   $text =~ s/\\r/\x{D}/g;
   $text =~ s/\\t/\x{9}/g;
   $text =~ s/\\u([0-9A-Fa-f]{4})/chr(hex($1))/ge;
+
   return $text;
 }
 
@@ -960,6 +977,7 @@ sub _decode_JSON_string {
 #
 sub _encode_JSON_string {
   my ($text) = @_;
+
   $text =~ s/(["\\\/])/\\$1/g;
   $text =~ s/\x{8}/\\b/g;
   $text =~ s/\x{C}/\\f/g;
@@ -967,6 +985,7 @@ sub _encode_JSON_string {
   $text =~ s/\x{D}/\\r/g;
   $text =~ s/\x{9}/\\t/g;
   $text =~ s/([\x{0}-\x{1F}\x{7F}-\x{9F}\x{2028}\x{2029}])/sprintf("\\u%.04X",ord($1))/ge;
+
   return $text;
 }
 
@@ -975,15 +994,18 @@ sub _encode_JSON_string {
 #
 sub _decode_colour {
   my ($text) = @_;
-  return undef unless defined $text;
+
+  return unless defined $text;
+
   return hex($text);
 }
 
 # _symbol_cmp
 # Sorts so letters are before numbers which are before symbols.
 # Otherwise sorts using normal string comparison.
-sub _symbol_cmp($$) {
+sub _symbol_cmp {
   my ($a, $b) = @_;
+
   if (length($a) == length($b)) {
     for (my $i = 0; $i < length($a); $i++) {
       my ($sym_a, $sym_b);
@@ -1007,6 +1029,7 @@ sub _symbol_cmp($$) {
       } elsif ($is_letter_b) {
         return 1;
       }
+
       # check to see if either is a number
       my ($is_num_a, $is_num_b);
       $is_num_a = ($sym_a ge '0' && $sym_a le '9');
@@ -1025,6 +1048,7 @@ sub _symbol_cmp($$) {
       } elsif ($is_num_b) {
         return 1;
       }
+
       # both must be symbols
       if ($sym_a < $sym_b) {
         return -1;
@@ -1032,6 +1056,7 @@ sub _symbol_cmp($$) {
         return 1;
       }
     }
+
     return 0;
   } elsif (length($a) > length($b)) {
     return -1;
@@ -1040,9 +1065,11 @@ sub _symbol_cmp($$) {
   }
 }
 
-sub _symobj_cmp($$) {
+sub _symobj_cmp {
   my ($sym1, $sym2) = @_;
+
   my ($ret);
+
   # compare comprise
   if (defined($sym1->{comprise}) && defined($sym2->{comprise})) {
     $ret = &_symbol_cmp($sym1->{comprise}, $sym2->{comprise});
@@ -1052,9 +1079,11 @@ sub _symobj_cmp($$) {
   } elsif (defined($sym2->{comprise})) {
     return -1; # sym1 first because it is a core symbol
   }
+
   # compare symbol
   $ret = &_symbol_cmp($sym1->{sym}, $sym2->{sym});
   return $ret if $ret != 0;
+
   # compare complement
   if (defined($sym1->{complement}) && defined($sym2->{complement})) {
     $ret = &_symbol_cmp($sym1->{complement}, $sym2->{complement});
@@ -1064,6 +1093,7 @@ sub _symobj_cmp($$) {
   } elsif (defined($sym2->{complement})) {
     return -1;
   }
+
   # compare aliases
   if (scalar(@{$sym1->{aliases}}) != scalar(@{$sym2->{aliases}})) {
     # sort length decending
@@ -1073,6 +1103,7 @@ sub _symobj_cmp($$) {
     $ret = &_symbol_cmp($sym1->{aliases}->[$i], $sym2->{aliases}->[$i]);
     return $ret if $ret != 0;
   }
+
   # compare name
   if (defined($sym1->{name}) && defined($sym2->{name})) {
     $ret = $sym1->{name} cmp $sym2->{name};
@@ -1082,6 +1113,7 @@ sub _symobj_cmp($$) {
   } elsif (defined($sym2->{name})) {
     return -1;
   }
+
   # compare colour
   if (defined($sym1->{colour}) && defined($sym2->{colour})) {
     return $sym1->{colour} <=> $sym2->{colour};
@@ -1092,6 +1124,7 @@ sub _symobj_cmp($$) {
   }
   return 0;
 }
+
 #
 # Return the RNA alphabet.
 #
