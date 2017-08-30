@@ -1096,7 +1096,7 @@ sub _symobj_cmp($$) {
 # Return the RNA alphabet.
 #
 sub rna {
-  my $alph = new Alphabet();
+  my $alph = new __PACKAGE__;
   $alph->parse_header('RNA', 'RNA');
   # core symbols
   $alph->parse_symbol('A', 'Adenine', 0xCC0000);
@@ -1128,7 +1128,7 @@ sub rna {
 # Return the DNA alphabet.
 #
 sub dna {
-  my $alph = new Alphabet();
+  my $alph = new __PACKAGE__;
   $alph->parse_header('DNA', 'DNA');
   # core symbols
   $alph->parse_symbol('A', 'Adenine', 0xCC0000, 'T');
@@ -1160,7 +1160,7 @@ sub dna {
 #
 sub moddna {
   my $alph = dna();
-  $alph->parse_header('modDNA', 'modDNA');
+  $alph->parse_header('modDNA', 'DNA');
   # core symbols
   $alph->parse_symbol('m', '5-Methylcytosine', 0xD73027, 'T');
   $alph->parse_symbol('1', 'Guanine:5-Methylcytosine', 0x4575B4, 'G');
@@ -1190,7 +1190,7 @@ sub moddna {
 # Return the Protein alphabet.
 #
 sub protein {
-  my $alph = new Alphabet();
+  my $alph = new __PACKAGE__;
   $alph->parse_header('Protein', 'PROTEIN');
   # core symbols
   $alph->parse_symbol('A', 'Alanine', 0x0000CC);
