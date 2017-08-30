@@ -921,6 +921,12 @@ sub is_dna {
   return $self->{cached_is_dna};
 }
 
+sub is_moddna {
+  my $self = shift;
+  $self->{cached_is_moddna} = $self->equals(&moddna()) unless defined $self->{cached_is_moddna};
+  return $self->{cached_is_moddna};
+}
+
 sub is_rna {
   my $self = shift;
   $self->{cached_is_rna} = $self->equals(&rna()) unless defined $self->{cached_is_rna};
