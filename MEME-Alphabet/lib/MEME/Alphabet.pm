@@ -54,7 +54,7 @@ use version; our $VERSION = version->declare("v4.12.0.1");
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(rna dna protein);
+our @EXPORT_OK = qw(rna dna moddna protein);
 
 my $SYM_RE = qr/[A-Za-z0-9\?\.\*\-]/;
 my $COLOUR_RE = qr/[0-9A-Fa-f]{6}/;
@@ -627,42 +627,67 @@ sub size_full {
 }
 
 #
-# Returns a scalar, which is the concatenation of all the
+# Return the input list in list context
+# and the flattened list in scalar context.
+#
+sub _flatten_list_in_scalar_context {
+    if (wantarray) {
+        return @_;
+    } else {
+        return join('' , @_);
+    }
+}
+
+#
+# Returns the concatenation of all the
 # possible ambiguity codes of the alphabet.
+# Returns a list in list context, otherwise a scalar.
 #
 sub get_ambig_syms {
     my $self = shift;
-    my $ambig_syms;
-    foreach my $sym (split(//, $self->get_syms())) {
-        $ambig_syms .= $sym unless ($self->is_core($sym));
+    my @ambig_syms;
+
+    foreach my $sym ($self->get_syms()) {
+        unless ($self->is_core($sym)) {
+            push(@ambig_syms, $sym);
+        }
     }
-    return $ambig_syms;
+
+    return _flatten_list_in_scalar_context(@ambig_syms);
 }
 
 #
-# Returns a scalar, which is the concatenation of all the
-# possible symbols of the alphabet.
+# Returns the concatenation of all the possible symbols
+# of the alphabet.
+# Returns a list in list context, otherwise a scalar.
 #
 sub get_syms {
     my $self = shift;
-    my $res = '';
+    my @syms;
+
     foreach my $symbol (@{$self->{syms}}) {
-        $res .= $symbol->{sym};
+        push(@syms, $symbol->{sym});
     }
-    return $res;
+
+    return _flatten_list_in_scalar_context(@syms);
 }
 
 #
-# Returns a scalar, which is the concatenation of all the
-# core symbols of the alphabet.
+# Returns the concatenation of all the core symbols
+# of the alphabet.
+# Returns a list in list context, otherwise a scalar.
 #
 sub get_core {
     my $self = shift;
-    my $core_syms;
-    foreach my $sym (split(//, $self->get_syms())) {
-        $core_syms .= $sym if ($self->is_core($sym));
+    my @core_syms;
+
+    foreach my $sym ($self->get_syms()) {
+        if ($self->is_core($sym)) {
+            push(@core_syms, $sym);
+        }
     }
-    return $core_syms;
+
+    return _flatten_list_in_scalar_context(@core_syms);
 }
 
 #
@@ -781,7 +806,7 @@ sub comprise {
 sub regex {
   my $self = shift;
   my ($set) = @_;
-  my $key = join('', sort _symbol_cmp (keys %{$set}));
+  my $key = join('', sort _symbol_cmp keys %{$set});
   my $sym = $self->{comprise_lookup}->{$key};
   if (defined($sym)) {
     return $sym->{sym};
@@ -874,6 +899,27 @@ sub translate_seq {
   eval {$sequence =~ tr/$src/$dst/};
 
   return $sequence;
+}
+
+#
+# Returns a scalar of Weblogo 3 colour arguments:
+# --color COLOR SYMBOLS DESCRIPTION ...
+# Currently only operates over core symbols.
+sub get_Weblogo_colour_args {
+    my $self = shift;
+
+    my $arg_string = '';
+
+    foreach my $letter ($self->get_core()) {
+        my $sym = $self->{lookup}->{$letter};
+
+        # convert back from decoded hex, adding '#' prefix
+        my $HTML_colour = sprintf("#%X", $sym->{colour});
+
+        $arg_string .= '--color '.$HTML_colour.' '.$sym->{sym}.' '.$sym->{name}.' ';
+    }
+
+    return $arg_string;
 }
 
 #
@@ -1003,7 +1049,7 @@ sub _decode_colour {
 # _symbol_cmp
 # Sorts so letters are before numbers which are before symbols.
 # Otherwise sorts using normal string comparison.
-sub _symbol_cmp {
+sub _symbol_cmp($$) {  ## no critic
   my ($a, $b) = @_;
 
   if (length($a) == length($b)) {
@@ -1065,14 +1111,13 @@ sub _symbol_cmp {
   }
 }
 
-sub _symobj_cmp {
+sub _symobj_cmp($$) {  ## no critic
   my ($sym1, $sym2) = @_;
-
-  my ($ret);
+  my $ret;
 
   # compare comprise
   if (defined($sym1->{comprise}) && defined($sym2->{comprise})) {
-    $ret = &_symbol_cmp($sym1->{comprise}, $sym2->{comprise});
+    $ret = _symbol_cmp($sym1->{comprise}, $sym2->{comprise});
     return $ret if $ret != 0;
   } elsif (defined($sym1->{comprise})) {
     return 1; # sym2 first because it is a core symbol
@@ -1081,12 +1126,12 @@ sub _symobj_cmp {
   }
 
   # compare symbol
-  $ret = &_symbol_cmp($sym1->{sym}, $sym2->{sym});
+  $ret = _symbol_cmp($sym1->{sym}, $sym2->{sym});
   return $ret if $ret != 0;
 
   # compare complement
   if (defined($sym1->{complement}) && defined($sym2->{complement})) {
-    $ret = &_symbol_cmp($sym1->{complement}, $sym2->{complement});
+    $ret = _symbol_cmp($sym1->{complement}, $sym2->{complement});
     return $ret if $ret != 0;
   } elsif (defined($sym1->{complement})) {
     return 1;
@@ -1100,7 +1145,7 @@ sub _symobj_cmp {
     return scalar(@{$sym2->{aliases}}) <=> scalar(@{$sym1->{aliases}});
   }
   for (my $i = 0; $i < scalar(@{$sym1->{aliases}}); $i++) {
-    $ret = &_symbol_cmp($sym1->{aliases}->[$i], $sym2->{aliases}->[$i]);
+    $ret = _symbol_cmp($sym1->{aliases}->[$i], $sym2->{aliases}->[$i]);
     return $ret if $ret != 0;
   }
 
@@ -1130,7 +1175,9 @@ sub _symobj_cmp {
 #
 sub rna {
   my $alph = new __PACKAGE__;
+
   $alph->parse_header('RNA', 'RNA');
+
   # core symbols
   $alph->parse_symbol('A', 'Adenine', 0xCC0000);
   $alph->parse_symbol('C', 'Cytosine', 0x0000CC);
@@ -1149,12 +1196,49 @@ sub rna {
   $alph->parse_symbol('V', 'Not U', undef, undef, 'ACG');
   $alph->parse_symbol('N', 'Any base', undef, undef, 'ACGU', 'X.');
   # for now treat '.' (gap) as a wildcard
+
   # process
   $alph->parse_done();
+
   # error check
   die("Uhoh, this shouldn't happen:\n" + join("\n", $alph->get_errors())) if ($alph->has_errors());
-  # return
+
   return $alph;
+}
+
+#
+# Parse core symbols in the DNA alphabet.
+# This is done separately, to ease expansion.
+# All core symbols must be parsed before any ambiguous symbols.
+# Optionally accepts arguments to set colours (alphabetical order).
+#
+sub _parse_core_DNA_symbols {
+  my $alph = shift;
+
+  $$alph->parse_symbol('A', 'Adenine', shift || 0xCC0000, 'T');
+  $$alph->parse_symbol('C', 'Cytosine', shift || 0x0000CC, 'G');
+  $$alph->parse_symbol('G', 'Guanine', shift || 0xFFB300, 'C');
+  $$alph->parse_symbol('T', 'Thymine', shift || 0x008000, 'A', undef, 'U');
+}
+
+#
+# Parse ambiguous symbols in the DNA alphabet.
+# This is done separately, to ease expansion.
+#
+sub _parse_ambiguous_DNA_symbols {
+  my $alph = shift;
+
+  $$alph->parse_symbol('W', 'Weak', undef, undef, 'AT');
+  $$alph->parse_symbol('S', 'Strong', undef, undef, 'CG');
+  $$alph->parse_symbol('M', 'Amino', undef, undef, 'AC');
+  $$alph->parse_symbol('K', 'Keto', undef, undef, 'GT');
+  $$alph->parse_symbol('R', 'Purine', undef, undef, 'AG');
+  $$alph->parse_symbol('Y', 'Pyrimidine', undef, undef, 'CT');
+  $$alph->parse_symbol('B', 'Not A', undef, undef, 'CGT');
+  $$alph->parse_symbol('D', 'Not C', undef, undef, 'AGT');
+  $$alph->parse_symbol('H', 'Not G', undef, undef, 'ACT');
+  $$alph->parse_symbol('V', 'Not T', undef, undef, 'ACG');
+  $$alph->parse_symbol('N', 'Any base', undef, undef, 'ACGT', 'X.');
 }
 
 #
@@ -1162,29 +1246,18 @@ sub rna {
 #
 sub dna {
   my $alph = new __PACKAGE__;
+
   $alph->parse_header('DNA', 'DNA');
-  # core symbols
-  $alph->parse_symbol('A', 'Adenine', 0xCC0000, 'T');
-  $alph->parse_symbol('C', 'Cytosine', 0x0000CC, 'G');
-  $alph->parse_symbol('G', 'Guanine', 0xFFB300, 'C');
-  $alph->parse_symbol('T', 'Thymine', 0x008000, 'A', undef, 'U');
-  # ambiguous symbols
-  $alph->parse_symbol('W', 'Weak', undef, undef, 'AT');
-  $alph->parse_symbol('S', 'Strong', undef, undef, 'CG');
-  $alph->parse_symbol('M', 'Amino', undef, undef, 'AC');
-  $alph->parse_symbol('K', 'Keto', undef, undef, 'GT');
-  $alph->parse_symbol('R', 'Purine', undef, undef, 'AG');
-  $alph->parse_symbol('Y', 'Pyrimidine', undef, undef, 'CT');
-  $alph->parse_symbol('B', 'Not A', undef, undef, 'CGT');
-  $alph->parse_symbol('D', 'Not C', undef, undef, 'AGT');
-  $alph->parse_symbol('H', 'Not G', undef, undef, 'ACT');
-  $alph->parse_symbol('V', 'Not T', undef, undef, 'ACG');
-  $alph->parse_symbol('N', 'Any base', undef, undef, 'ACGT', 'X.');
+
+  _parse_core_DNA_symbols(\$alph);
+  _parse_ambiguous_DNA_symbols(\$alph);
+
   # for now treat '.' (gap) as a wildcard
   # process
   $alph->parse_done();
+
   die("Uhoh, this shouldn't happen:\n" + join("\n", $alph->get_errors())) if ($alph->has_errors());
-  # return
+
   return $alph;
 }
 
@@ -1192,18 +1265,25 @@ sub dna {
 # Return the DNA with cytosine modifications alphabet.
 #
 sub moddna {
-  my $alph = dna();
+  my $alph = new __PACKAGE__;
+
   $alph->parse_header('modDNA', 'DNA');
-  # core symbols
-  $alph->parse_symbol('m', '5-Methylcytosine', 0xD73027, 'T');
-  $alph->parse_symbol('1', 'Guanine:5-Methylcytosine', 0x4575B4, 'G');
-  $alph->parse_symbol('h', '5-Hydroxymethylcytosine', 0xF46D43, 'C');
-  $alph->parse_symbol('2', 'Guanine:5-Hydroxymethylcytosine', 0x74ADD1, 'A');
-  $alph->parse_symbol('f', '5-Formylcytosine', 0xFDAE61, 'T');
-  $alph->parse_symbol('3', 'Guanine:5-Formylcytosine', 0xABD9E9, 'G');
-  $alph->parse_symbol('c', '5-Carboxylcytosine', 0xFEE090, 'C');
-  $alph->parse_symbol('4', 'Guanine:5-Carboxylcytosine', 0xE0F3F8, 'A');
-  # ambiguous symbols
+
+  _parse_core_DNA_symbols(\$alph, 0x8510A8, 0xA50026, 0x313695, 0xA89610);
+
+  # additional core symbols
+  $alph->parse_symbol('m', '5-Methylcytosine', 0xD73027, '1');
+  $alph->parse_symbol('1', 'Guanine:5-Methylcytosine', 0x4575B4, 'm');
+  $alph->parse_symbol('h', '5-Hydroxymethylcytosine', 0xF46D43, '2');
+  $alph->parse_symbol('2', 'Guanine:5-Hydroxymethylcytosine', 0x74ADD1, 'h');
+  $alph->parse_symbol('f', '5-Formylcytosine', 0xFDAE61, '3');
+  $alph->parse_symbol('3', 'Guanine:5-Formylcytosine', 0xABD9E9, 'f');
+  $alph->parse_symbol('c', '5-Carboxylcytosine', 0xFEE090, '4');
+  $alph->parse_symbol('4', 'Guanine:5-Carboxylcytosine', 0xE0F3F8, 'c');
+
+  _parse_ambiguous_DNA_symbols(\$alph);
+
+  # additional ambiguous symbols
   $alph->parse_symbol('z', 'Any C mod', undef, undef, 'Cmhfc');
   $alph->parse_symbol('9', 'Guanine:any C mod', undef, undef, 'G1234');
   $alph->parse_symbol('y', 'C, not (hydroxy)methylcytosine', undef, undef, 'Cfc');
@@ -1212,10 +1292,12 @@ sub moddna {
   $alph->parse_symbol('7', 'Guanine:(hydroxy)methylcytosine', undef, undef, '12');
   $alph->parse_symbol('w', '(Formyl/carboxyl)cytosine', undef, undef, 'fc');
   $alph->parse_symbol('6', 'Guanine:(formyl/carboxyl)cytosine', undef, undef, '34');
+
   # process
   $alph->parse_done();
+
   die("Uhoh, this shouldn't happen:\n" + join("\n", $alph->get_errors())) if ($alph->has_errors());
-  # return
+
   return $alph;
 }
 
@@ -1224,7 +1306,9 @@ sub moddna {
 #
 sub protein {
   my $alph = new __PACKAGE__;
+
   $alph->parse_header('Protein', 'PROTEIN');
+
   # core symbols
   $alph->parse_symbol('A', 'Alanine', 0x0000CC);
   $alph->parse_symbol('R', 'Arginine', 0xCC0000);
@@ -1252,11 +1336,13 @@ sub protein {
   $alph->parse_symbol('J', 'Leucine or Isoleucine', undef, undef, 'LI');
   $alph->parse_symbol('X', 'Any amino acid', undef, undef, 'ARNDCEQGHILKMFPSTWYV', '*.');
   # for now treat '*' (stop codon) and '.' (gap) as a wildcard
+
   # process
   $alph->parse_done();
+
   # error check
   die("Uhoh, this shouldn't happen:\n" + join("\n", $alph->get_errors())) if ($alph->has_errors());
-  # return
+
   return $alph;
 }
 
