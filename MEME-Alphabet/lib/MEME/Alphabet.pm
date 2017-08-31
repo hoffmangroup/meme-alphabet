@@ -22,7 +22,7 @@ the following three paragraphs appear in all copies.
 
 Those desiring to incorporate this software into commercial
 products or use for commercial purposes should contact the
-Technology Transfer Office, University of California, San Diego,*
+Technology Transfer Office, University of California, San Diego,
 9500 Gilman Drive, La Jolla, California, 92093-0910,
 Ph: (619) 534 5815.
 
