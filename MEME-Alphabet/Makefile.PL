@@ -18,11 +18,13 @@ WriteMakefile(
         'Test::More' => '0',
     },
     PREREQ_PM => {
+                'Array::Compare'         => '0',
                 'Carp'                   => '0',
                 'Exporter'               => '0',
                 'Fcntl'                  => '0',
                 'feature'                => '0',
                 'strict'                 => '0',
+                'Test::More'             => '0',
                 'utf8'                   => '0',
                 'version'                => '0',
                 'warnings'               => '0',
