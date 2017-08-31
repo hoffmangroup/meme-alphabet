@@ -4,9 +4,11 @@
 
 MEME::Alphabet - Provides nucleobase alphabet capabilities for Perl code.
 
-=head2 Copyright and license
+=head1 AUTHORS
 
-Author: James Johnson and Timothy L. Bailey.
+James Johnson and Timothy L. Bailey.
+
+=head1 LICENSE
 
 Copyright
 (1994 - 2017) The Regents of the University of California.
