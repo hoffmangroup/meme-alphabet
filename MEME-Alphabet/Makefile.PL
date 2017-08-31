@@ -1,6 +1,8 @@
-use 5.008;
+use 5.0120;
+
 use strict;
 use warnings;
+
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
@@ -10,7 +12,7 @@ WriteMakefile(
     ABSTRACT_FROM    => 'lib/MEME/Alphabet.pm',
     LICENSE          => 'restricted',
     PL_FILES         => {},
-    MIN_PERL_VERSION => '5.008',
+    MIN_PERL_VERSION => '5.0120',
     CONFIGURE_REQUIRES => {
         'ExtUtils::MakeMaker'            => '0',
     },
