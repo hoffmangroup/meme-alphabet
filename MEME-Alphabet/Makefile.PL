@@ -48,5 +48,11 @@ WriteMakefile(
                 web         => 'https://bitbucket.org/cviner2/meme-alphabet/issues',
             },
         },
+        provides => {
+            'MEME::Alphabet' => {
+                file    => 'lib/MEME/Alphabet.pm',
+                version => 'v4.12.0.1.1',
+          },
+        },
     },
 );
