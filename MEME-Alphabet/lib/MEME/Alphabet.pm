@@ -1,8 +1,8 @@
 =pod
 
-=head1 MEME::Alphabet
+=head1 NAME
 
-Provides nucleobase alphabet capabilities for Perl code.
+MEME::Alphabet - Provides nucleobase alphabet capabilities for Perl code.
 
 =head2 Copyright and license
 
