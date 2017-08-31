@@ -7,7 +7,10 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
     NAME             => 'MEME::Alphabet',
-    AUTHOR           => q{Timothy L. Bailey <meme-suite@uw.edu>},
+    AUTHOR           => [
+        'James Johnson <meme-suite@uw.edu>',
+        'Timothy L. Bailey <meme-suite@uw.edu>',
+    ],
     VERSION_FROM     => 'lib/MEME/Alphabet.pm',
     ABSTRACT_FROM    => 'lib/MEME/Alphabet.pm',
     LICENSE          => 'restricted',
@@ -32,4 +35,18 @@ WriteMakefile(
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'MEME-Alphabet-*' },
+    META_MERGE => {
+        'meta-spec' => { version => 2 },
+        resources   => {
+            homepage    => 'http://meme-suite.org',
+            repository  => {
+                type        => 'hg',
+                url         => 'https://cviner2@bitbucket.org/cviner2/meme-alphabet',
+                web         => 'https://bitbucket.org/cviner2/meme-alphabet',
+            },
+            bugtracker  => {
+                web         => 'https://bitbucket.org/cviner2/meme-alphabet/issues',
+            },
+        },
+    },
 );
