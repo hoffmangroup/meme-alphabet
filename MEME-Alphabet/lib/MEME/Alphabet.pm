@@ -912,7 +912,7 @@ sub translate_seq {
 sub get_Weblogo_colour_args {
     my $self = shift;
 
-    my $arg_string = '';
+    my $arg_string = "";
 
     foreach my $letter ($self->get_core()) {
         my $sym = $self->{lookup}->{$letter};
@@ -920,7 +920,7 @@ sub get_Weblogo_colour_args {
         # convert back from decoded hex, adding '#' prefix
         my $HTML_colour = sprintf("#%X", $sym->{colour});
 
-        $arg_string .= '--color '.$HTML_colour.' '.$sym->{sym}.' '.$sym->{name}.' ';
+        $arg_string .= "--color '$HTML_colour' '$sym->{sym}' '$sym->{name}' ";
     }
 
     return $arg_string;

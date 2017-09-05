@@ -51,5 +51,4 @@ is($alph->rc_seq('Cmhfc'), '4321G');
 
 # Test 8: Weblogo 3 colour parameter (check C, m, and 1)
 
-like($alph->get_Weblogo_colour_args(), qr/--color #A50026 C Cytosine.*--color #D73027 m.*--color #4575B4 1/);
-
+like($alph->get_Weblogo_colour_args(), qr/--color '#A50026' 'C' 'Cytosine'.*--color '#D73027' 'm'.*--color '#4575B4' '1'/);
