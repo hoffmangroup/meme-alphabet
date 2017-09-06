@@ -918,7 +918,7 @@ sub get_Weblogo_colour_args {
         my $sym = $self->{lookup}->{$letter};
 
         # convert back from decoded hex, adding '#' prefix
-        my $HTML_colour = sprintf("#%X", $sym->{colour});
+        my $HTML_colour = sprintf("#%06X", $sym->{colour});
 
         $arg_string .= "--color '$HTML_colour' '$sym->{sym}' '$sym->{name}' ";
     }
