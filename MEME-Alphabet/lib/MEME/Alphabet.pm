@@ -54,7 +54,7 @@ use Carp;
 use Fcntl qw(O_RDONLY);
 
 # pinned to the latest MEME Suite version (x.yy.z), and then versioned from there
-use version; our $VERSION = version->declare("v4.12.0.1.2");
+use version; our $VERSION = version->declare("v4.12.0.1.3");
 
 require Exporter;
 our @ISA = qw(Exporter);

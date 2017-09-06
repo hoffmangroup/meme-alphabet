@@ -51,7 +51,7 @@ WriteMakefile(
         provides => {
             'MEME::Alphabet' => {
                 file    => 'lib/MEME/Alphabet.pm',
-                version => 'v4.12.0.1.2',
+                version => 'v4.12.0.1.3',
           },
         },
     },
